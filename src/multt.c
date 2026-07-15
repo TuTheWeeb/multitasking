@@ -1,12 +1,10 @@
 #include "multt.h"
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
 
 TCB_t main_task = {};
 TCB_t *tasks;
 TCB_t *current_task = &main_task;
 TCB_t *next_task = NULL;
+uint8_t *_TASKS_MEM;
 
 static uint32_t current_task_index = 0;
 
@@ -17,11 +15,20 @@ void init_tasks(void) {
   }
 }
 
+void close_tasks(void) {
+  for (size_t i = 0; i < MAX_STACKS; i++) {
+    free(tasks[i].stack);
+  }
+
+  free(tasks);
+}
+
 void task_exit(void) {
   current_task->state = EMPTY;
   schedule();
 }
 
+/*
 void create_task(uint32_t index, void (*task_function)(void *args),
                  void *args) {
   tasks[index].id = index;
@@ -47,7 +54,7 @@ void create_task(uint32_t index, void (*task_function)(void *args),
 
   // Save the final stack pointer into the TCB
   tasks[index].stack_pointer = sp;
-}
+}*/
 
 __attribute__((naked)) void context_switch(void) {
   // __asm__ volatile ensures the compiler doesn't optimize this code away
